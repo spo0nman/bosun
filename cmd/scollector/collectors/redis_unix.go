@@ -286,7 +286,10 @@ func redisInit() {
 			}
 			port := strings.Split(sp[2], ":")[1]
 			if port != "0" {
-				add(port)
+				_, err := util.Command(time.Second, nil, "grep", "-q", "cpu:/docker", fmt.Sprintf("/proc/%s/cgroup", sp[0]))
+				if err != nil {
+					add(port)
+				}
 			}
 			return nil
 		}, "ps", "-e", "-o", "pid,args")
