@@ -286,7 +286,11 @@ func redisInit() {
 			}
 			port := strings.Split(sp[2], ":")[1]
 			if port != "0" {
-				_, err := util.Command(time.Second, nil, "grep", "-q", "cpu:/docker", fmt.Sprintf("/proc/%s/cgroup", sp[0]))
+				//Check namespace to see if process is running in a container. Use exitcode != 0 and err != nil to enable port
+				//bash -c "test -h /proc/4129/ns/pid && test $(readlink /proc/4129/ns/pid) != $(readlink /proc/1/ns/pid)"; echo $?
+				nspid := fmt.Sprintf("/proc/%s/ns/pid", sp[0])
+				args := []string{"-c", fmt.Sprintf("test -h %s && test $(readlink %s) != $(readlink /proc/1/ns/pid)", nspid, nspid)}
+				_, err := util.Command(time.Second, nil, "bash", args...)
 				if err != nil {
 					add(port)
 				}
